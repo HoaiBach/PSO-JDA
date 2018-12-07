@@ -84,7 +84,7 @@ def evaluate(particle):
 
 
 toolbox = base.Toolbox()
-toolbox.register("particle", generate, size=NBIT, pmin=-pos_min, pmax=pos_max, smin=-0.4, smax=0.4)
+toolbox.register("particle", generate, size=NBIT, pmin=pos_min, pmax=pos_max, smin=-0.4, smax=0.4)
 toolbox.register("population", tools.initRepeat, list, toolbox.particle)
 toolbox.register("update", updateParticle)
 toolbox.register("evaluate", evaluate)
@@ -100,6 +100,7 @@ def main(args):
     stats.register("std", np.std)
     stats.register("min", np.min)
     stats.register("max", np.max)
+
 
     logbook = tools.Logbook()
     logbook.header = ["gen", "evals"] + stats.fields
