@@ -9,6 +9,9 @@ import scipy.linalg
 import sklearn.metrics
 import sklearn.neighbors
 from Utility import kernel
+import FitnessFunction
+import Core
+
 
 class JDA:
     def __init__(self, kernel_type='primal', dim=30, lamb=1, gamma=1, T=10):
@@ -40,23 +43,24 @@ class JDA:
         X /= np.linalg.norm(X, axis=0)
         m, n = X.shape
         ns, nt = len(Xs), len(Xt)
-        e = np.vstack((1 / ns * np.ones((ns, 1)), -1 / nt * np.ones((nt, 1))))
+        e = np.vstack((1.0 / ns * np.ones((ns, 1)), -1.0 / nt * np.ones((nt, 1))))
         C = len(np.unique(Ys))
-        H = np.eye(n) - 1 / n * np.ones((n, n))
+        H = np.eye(n) - 1.0 / n * np.ones((n, n))
 
-        M = e * e.T * C
+        M0 = e * e.T * C
         Y_tar_pseudo = None
         for t in range(self.T):
             N = 0
+            M = np.copy(M0)
             if Y_tar_pseudo is not None and len(Y_tar_pseudo) == nt:
                 for c in range(1, C + 1):
                     e = np.zeros((n, 1))
                     tt = Ys == c
-                    e[np.where(tt == True)] = 1 / len(Ys[np.where(self.Ys == c)])
+                    e[np.where(tt == True)] = 1.0 / len(Ys[np.where(Ys == c)])
                     yy = Y_tar_pseudo == c
                     ind = np.where(yy == True)
                     inds = [item + ns for item in ind]
-                    e[tuple(inds)] = -1 / len(Y_tar_pseudo[np.where(Y_tar_pseudo == c)])
+                    e[tuple(inds)] = -1.0 / len(Y_tar_pseudo[np.where(Y_tar_pseudo == c)])
                     e[np.isinf(e)] = 0
                     N = N + np.dot(e, e.T)
             M += N
@@ -67,6 +71,12 @@ class JDA:
             w, V = scipy.linalg.eig(a, b)
             ind = np.argsort(w)
             A = V[:, ind[:self.dim]]
+
+            first1 = np.linalg.multi_dot([K, M, K.T]) + self.lamb * np.eye(n_eye)
+            first2 = np.linalg.multi_dot([A.T, first1, A])
+            print(first2.trace())
+            print(FitnessFunction.fitness_function(A))
+
             Z = np.dot(A.T, K)
             Z /= np.linalg.norm(Z, axis=0)
             Xs_new, Xt_new = Z[:, :ns].T, Z[:, ns:].T
@@ -82,12 +92,10 @@ class JDA:
 
 if __name__ == '__main__':
     domains = ['caltech.mat', 'amazon.mat', 'webcam.mat', 'dslr.mat']
-    for i in range(1):
-        for j in range(2):
-            if i != j:
-                src, tar = 'data/' + domains[i], 'data/' + domains[j]
-                src_domain, tar_domain = scipy.io.loadmat(src), scipy.io.loadmat(tar)
-                Xs, Ys, Xt, Yt = src_domain['feas'], src_domain['label'], tar_domain['feas'], tar_domain['label']
-                jda = JDA(kernel_type='primal', dim=30, lamb=1, gamma=1)
-                acc, ypre, list_acc = jda.fit_predict(Xs, Ys, Xt, Yt)
-                print(acc)
+
+    src, tar = 'data/dslr.mat', 'data/webcam.mat'
+    src_domain, tar_domain = scipy.io.loadmat(src), scipy.io.loadmat(tar)
+    Xs, Ys, Xt, Yt = src_domain['feas'], src_domain['label'], tar_domain['feas'], tar_domain['label']
+    jda = JDA(kernel_type='rbf', dim=50, lamb=1, gamma=0.5)
+    acc, ypre, list_acc = jda.fit_predict(Xs, Ys, Xt, Yt)
+    print(acc)

@@ -23,16 +23,18 @@ import FitnessFunction as Fitness
 import Core
 
 # Setting from Problem
-NBIT = Core.n * Core.k
-NGEN = 100
-NPART = 30#NBIT if NBIT < 100 else 100
+NBIT = Core.A_row * Core.A_col
+NGEN = 200
+NPART = 200#NBIT if NBIT < 100 else 100
 
 # PSO parameters
 w = 0.7298
 c1 = 1.49618
 c2 = 1.49618
-pos_max = 1
-pos_min = -1
+pos_max = 0.1
+pos_min = -0.1
+s_max = (pos_max-pos_min)/5
+s_min = -s_max
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Particle", np.ndarray, fitness=creator.FitnessMin,
@@ -42,15 +44,15 @@ creator.create("Particle", np.ndarray, fitness=creator.FitnessMin,
 
 def generate(size, pmin, pmax, smin, smax):
     position = np.random.uniform(pmin, pmax, size)
-    part1 = creator.Particle(position)
-    part2 = creator.Particle(-position)
-    fitness1 = evaluate(part1)
-    fitness2 = evaluate(part2)
-    print(fitness1, fitness2)
-    if fitness1 > fitness2:
-        part = part1
-    else:
-        part = part2
+    # part1 = creator.Particle(position)
+    # part2 = creator.Particle(-position)
+    # fitness1 = evaluate(part1)
+    # fitness2 = evaluate(part2)
+    # if fitness1 > fitness2:
+    #     part = part1
+    # else:
+    #     part = part2
+    part = creator.Particle(position)
     part.speed = np.zeros(size)
     # np.random.uniform(smin, smax, size)
     part.smin = smin
@@ -79,12 +81,12 @@ def updateParticle(part, best):
 
 def evaluate(particle):
     A = np.copy(particle)
-    A = np.reshape(A, (Core.n, Core.k))
+    A = np.reshape(A, (Core.A_row, Core.A_col))
     return Fitness.fitness_function(A),
 
 
 toolbox = base.Toolbox()
-toolbox.register("particle", generate, size=NBIT, pmin=pos_min, pmax=pos_max, smin=-0.4, smax=0.4)
+toolbox.register("particle", generate, size=NBIT, pmin=pos_min, pmax=pos_max, smin=s_min, smax=s_max)
 toolbox.register("population", tools.initRepeat, list, toolbox.particle)
 toolbox.register("update", updateParticle)
 toolbox.register("evaluate", evaluate)
@@ -100,10 +102,6 @@ def main(args):
     stats.register("std", np.std)
     stats.register("min", np.min)
     stats.register("max", np.max)
-
-
-    logbook = tools.Logbook()
-    logbook.header = ["gen", "evals"] + stats.fields
 
     GEN = NGEN
     best = None
@@ -125,7 +123,7 @@ def main(args):
 
         # Accuracy of pbest
         A = np.copy(best)
-        A = np.reshape(A, (Core.n, Core.k))
+        A = np.reshape(A, (Core.A_row, Core.A_col))
         Z = np.dot(A.T, Core.K)
         Z /= np.linalg.norm(Z, axis=0)
         Xs_new, Xt_new = Z[:, :Core.ns].T, Z[:, :Core.nt].T
