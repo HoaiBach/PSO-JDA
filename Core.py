@@ -22,7 +22,7 @@ n = ns + nt
 C = len(np.unique(Ys))
 
 # new dimension
-k = 10
+k = 50
 lamda = 1.0
 
 # build kernel matrix
@@ -34,7 +34,6 @@ if kernel == 'primal':
 else:
     A_row, A_col = n, k
 
-
 # build H matrix -> variant
 H = np.eye(n) - 1.0 / n * np.ones((n, n))
 
@@ -43,10 +42,9 @@ e = np.vstack((1.0 / ns * np.ones((ns, 1)), -1.0 / nt * np.ones((nt, 1))))
 M0 = e * e.T * C
 
 # original variant
-var_o = np.linalg.multi_dot([K, H, K.T])
+# var_o = np.linalg.multi_dot([K, H, K.T])
 
 classifier = KNeighborsClassifier(n_neighbors=1)
-
 
 
 if __name__ == "__main__":
