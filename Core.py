@@ -21,15 +21,25 @@ ns, nt = Xs.shape[0], Xt.shape[0]
 n = ns + nt
 C = len(np.unique(Ys))
 
+# new dimension
+k = 10
+lamda = 1.0
+
 # build kernel matrix
 X = np.hstack((Xs.T, Xt.T))
-K = Utility.kernel('rbf', X, None, gamma=2.0)
+kernel = 'primal'
+K = Utility.kernel(kernel, X, None, gamma=0.5)
+if kernel == 'primal':
+    A_row, A_col = m, k
+else:
+    A_row, A_col = n, k
+
 
 # build H matrix -> variant
-H = np.eye(n) - 1 / n * np.ones((n, n))
+H = np.eye(n) - 1.0 / n * np.ones((n, n))
 
 # build M0 matrix
-e = np.vstack((1 / ns * np.ones((ns, 1)), -1 / nt * np.ones((nt, 1))))
+e = np.vstack((1.0 / ns * np.ones((ns, 1)), -1.0 / nt * np.ones((nt, 1))))
 M0 = e * e.T * C
 
 # original variant
@@ -37,9 +47,7 @@ var_o = np.linalg.multi_dot([K, H, K.T])
 
 classifier = KNeighborsClassifier(n_neighbors=1)
 
-# new dimension
-k = 30
-lamda = 1.0
+
 
 if __name__ == "__main__":
     classifier = KNeighborsClassifier(n_neighbors=1)
