@@ -40,7 +40,9 @@ def fitness_function(A):
     B = np.linalg.multi_dot([Core.K, M, Core.K.T]) + Core.lamda * np.eye(Core.n)
 
     # now calculate the fitness function
-    fitness = np.linalg.multi_dot([A.T, B, A]).trace() / np.linalg.multi_dot([A.T, Core.var_o, A]).trace()
+    a1 = np.linalg.multi_dot([A.T, B, A]).trace()
+    a2 = np.linalg.multi_dot([A.T, Core.var_o, A]).trace()
+    fitness = a1/a2
     return fitness
 
 

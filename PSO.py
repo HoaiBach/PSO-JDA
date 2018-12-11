@@ -31,8 +31,8 @@ NPART = 30#NBIT if NBIT < 100 else 100
 w = 0.7298
 c1 = 1.49618
 c2 = 1.49618
-pos_max = 1
-pos_min = -1
+pos_max = 0.1
+pos_min = -0.1
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Particle", np.ndarray, fitness=creator.FitnessMin,
@@ -42,15 +42,16 @@ creator.create("Particle", np.ndarray, fitness=creator.FitnessMin,
 
 def generate(size, pmin, pmax, smin, smax):
     position = np.random.uniform(pmin, pmax, size)
-    part1 = creator.Particle(position)
-    part2 = creator.Particle(-position)
-    fitness1 = evaluate(part1)
-    fitness2 = evaluate(part2)
-    print(fitness1, fitness2)
-    if fitness1 > fitness2:
-        part = part1
-    else:
-        part = part2
+    # part1 = creator.Particle(position)
+    # part2 = creator.Particle(-position)
+    # fitness1 = evaluate(part1)
+    # fitness2 = evaluate(part2)
+    # print(fitness1, fitness2)
+    # if fitness1 > fitness2:
+    #     part = part1
+    # else:
+    #     part = part2
+    part = creator.Particle(position)
     part.speed = np.zeros(size)
     # np.random.uniform(smin, smax, size)
     part.smin = smin
@@ -84,7 +85,7 @@ def evaluate(particle):
 
 
 toolbox = base.Toolbox()
-toolbox.register("particle", generate, size=NBIT, pmin=pos_min, pmax=pos_max, smin=-0.4, smax=0.4)
+toolbox.register("particle", generate, size=NBIT, pmin=pos_min, pmax=pos_max, smin=-0.04, smax=0.04)
 toolbox.register("population", tools.initRepeat, list, toolbox.particle)
 toolbox.register("update", updateParticle)
 toolbox.register("evaluate", evaluate)
